@@ -1,20 +1,26 @@
+import 'dart:convert';
+
 import 'package:tdd/feature/number_trivia/domain/entities/number_trivia.dart';
 
 class NumberTriviaModel extends NumberTrivia {
-  const NumberTriviaModel({required int number, required String text})
-      : super(number: number, text: text);
+  const NumberTriviaModel({
+    required String text,
+    required int number,
+  }) : super(number: number, text: text);
 
-  factory NumberTriviaModel.fromJson(Map<String, dynamic> json) {
-    return NumberTriviaModel(
-      text: json['text'],
-      number: (json['number'] as num).toInt(),
-    );
+  factory NumberTriviaModel.fromJson(Map<String, dynamic> jsonRes) =>
+      NumberTriviaModel(
+        text: jsonRes['text'],
+        number: (jsonRes['number'] as num).toInt(),
+      );
+
+  @override
+  String toString() {
+    return jsonEncode(this);
   }
 
-  Map<String, dynamic> toJson() {
-    return {
-      'text': text,
-      'number': number,
-    };
-  }
+  Map<String, dynamic> toJson() => <String, dynamic>{
+        'text': text,
+        'number': number,
+      };
 }
