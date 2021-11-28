@@ -4,14 +4,14 @@ import 'package:tdd/feature/number_trivia/domain/entities/number_trivia.dart';
 
 class NumberTriviaModel extends NumberTrivia {
   const NumberTriviaModel({
-    required String text,
     required int number,
+    required String text,
   }) : super(number: number, text: text);
 
   factory NumberTriviaModel.fromJson(Map<String, dynamic> jsonRes) =>
       NumberTriviaModel(
-        text: jsonRes['text'],
         number: (jsonRes['number'] as num).toInt(),
+        text: jsonRes['text'],
       );
 
   @override
@@ -20,7 +20,7 @@ class NumberTriviaModel extends NumberTrivia {
   }
 
   Map<String, dynamic> toJson() => <String, dynamic>{
-        'text': text,
         'number': number,
+        'text': text,
       };
 }
