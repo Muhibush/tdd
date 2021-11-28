@@ -39,17 +39,33 @@ void main() {
     reset(mockLocalDataSource);
   });
 
+  void runTestOnline(Function body) {
+    group('device is online', () {
+      setUpAll(() {
+        when(() => mockNetworkInfo.isConnected).thenAnswer((_) async => true);
+      });
+
+      body();
+    });
+  }
+
+  void runTestOffline(Function body) {
+    group('device is online', () {
+      setUpAll(() {
+        when(() => mockNetworkInfo.isConnected).thenAnswer((_) async => false);
+      });
+
+      body();
+    });
+  }
+
   group('getConcreteNumberTrivia', () {
     const tNumber = 1;
     const tNumberTriviaModel =
         NumberTriviaModel(number: tNumber, text: 'test trivia');
     const NumberTrivia tNumberTrivia = tNumberTriviaModel;
 
-    group('device is online', () {
-      setUpAll(() {
-        when(() => mockNetworkInfo.isConnected).thenAnswer((_) async => true);
-      });
-
+    runTestOnline(() {
       test(
         'should return remote data when the call to remote data source is successful',
         () async {
@@ -102,11 +118,7 @@ void main() {
       );
     });
 
-    group('device is offline', () {
-      setUpAll(() {
-        when(() => mockNetworkInfo.isConnected).thenAnswer((_) async => false);
-      });
-
+    runTestOffline(() {
       test(
         'should return last locally cached data when the cached data is present',
         () async {
