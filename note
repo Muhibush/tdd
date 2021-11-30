@@ -1,0 +1,3 @@
+test
+- flutter test --no-sound-null-safety
+coz shared pref plugin error
