@@ -2,6 +2,7 @@ import 'package:dartz/dartz.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:tdd/core/util/input_converter.dart';
+import 'package:tdd/feature/number_trivia/data/repositories/number_trivia_repository_impl.dart';
 import 'package:tdd/feature/number_trivia/domain/entities/number_trivia.dart';
 import 'package:tdd/feature/number_trivia/domain/usecases/get_concrete_number_trivia.dart';
 import 'package:tdd/feature/number_trivia/domain/usecases/get_random_number_trivia.dart';
@@ -14,6 +15,12 @@ class MockGetRandomNumberTrivia extends Mock implements GetRandomNumberTrivia {}
 
 class MockInputConverter extends Mock implements InputConverter {}
 
+class MockNumberTriviaRepository extends Fake
+    implements NumberTriviaRepositoryImpl {}
+
+// class MockNumberTriviaRepository extends Mock
+//     implements NumberTriviaRepository {}
+
 void main() {
   late MockGetConcreteNumberTrivia mockGetConcreteNumberTrivia;
   late MockGetRandomNumberTrivia mockGetRandomNumberTrivia;
@@ -21,6 +28,8 @@ void main() {
   late NumberTriviaBloc bloc;
 
   setUpAll(() {
+    registerFallbackValue(MockNumberTriviaRepository());
+    print('registered');
     mockGetConcreteNumberTrivia = MockGetConcreteNumberTrivia();
     mockGetRandomNumberTrivia = MockGetRandomNumberTrivia();
     mockInputConverter = MockInputConverter();
@@ -76,6 +85,22 @@ void main() {
         expectLater(bloc.stream, emitsInOrder(expected));
         // act
         bloc.add(const GetTriviaForConcreteNumber(tNumberString));
+      },
+    );
+    test(
+      'should get data from the concrete use case',
+      () async {
+        // arrange
+        when(() => mockInputConverter.stringToUnsignedInteger(any()))
+            .thenReturn(Right(tNumberParsed));
+        when(() => mockGetConcreteNumberTrivia(any()))
+            .thenAnswer((_) async => const Right(tNumberTrivia));
+        // act
+        bloc.add(const GetTriviaForConcreteNumber(tNumberString));
+        await untilCalled(() => mockGetConcreteNumberTrivia(any()));
+        // assert
+        verify(
+            () => mockGetConcreteNumberTrivia(Params(number: tNumberParsed)));
       },
     );
   });
