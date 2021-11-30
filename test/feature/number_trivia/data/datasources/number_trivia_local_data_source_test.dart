@@ -13,12 +13,11 @@ class MockSharedPreferences extends Mock implements SharedPreferences {}
 
 void main() {
   late MockSharedPreferences mockSharedPreferences;
-  late NumberTriviaLocalDataSourceImpl numberTriviaLocalDataSourceImpl;
+  late NumberTriviaLocalDataSourceImpl dataSource;
 
   setUpAll(() {
     mockSharedPreferences = MockSharedPreferences();
-    numberTriviaLocalDataSourceImpl =
-        NumberTriviaLocalDataSourceImpl(mockSharedPreferences);
+    dataSource = NumberTriviaLocalDataSourceImpl(mockSharedPreferences);
   });
 
   tearDown(() {
@@ -35,8 +34,7 @@ void main() {
       when(() => mockSharedPreferences.getString(cachedNumberTrivia))
           .thenReturn(fixture('trivia_cached.json'));
 
-      final result =
-          await numberTriviaLocalDataSourceImpl.getLastNumberTrivia();
+      final result = await dataSource.getLastNumberTrivia();
 
       verify(() => mockSharedPreferences.getString(cachedNumberTrivia))
           .called(1);
@@ -47,7 +45,7 @@ void main() {
         () async {
       when(() => mockSharedPreferences.getString(any())).thenReturn(null);
 
-      final callResult = numberTriviaLocalDataSourceImpl.getLastNumberTrivia;
+      final callResult = dataSource.getLastNumberTrivia;
 
       expect(callResult(), throwsA(const TypeMatcher<CacheException>()));
       verify(() => mockSharedPreferences.getString(cachedNumberTrivia))
@@ -61,7 +59,7 @@ void main() {
     final expectedJsonString = json.encode(tNumberTriviaModel.toJson());
 
     test('should call SharedPreferences to cache the data', () {
-      numberTriviaLocalDataSourceImpl.cacheNumberTrivia(tNumberTriviaModel);
+      dataSource.cacheNumberTrivia(tNumberTriviaModel);
 
       verify(() => mockSharedPreferences.setString(
             cachedNumberTrivia,
