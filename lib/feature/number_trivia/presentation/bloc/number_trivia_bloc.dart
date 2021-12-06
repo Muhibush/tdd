@@ -1,5 +1,8 @@
 import 'package:bloc/bloc.dart';
+import 'package:dartz/dartz.dart';
 import 'package:equatable/equatable.dart';
+import 'package:tdd/core/error/failure.dart';
+import 'package:tdd/core/usecase/usecase.dart';
 import 'package:tdd/core/util/input_converter.dart';
 import 'package:tdd/feature/number_trivia/domain/entities/number_trivia.dart';
 import 'package:tdd/feature/number_trivia/domain/usecases/get_concrete_number_trivia.dart';
@@ -26,6 +29,7 @@ class NumberTriviaBloc extends Bloc<NumberTriviaEvent, NumberTriviaState> {
     required this.inputConverter,
   }) : super(Empty()) {
     on<GetTriviaForConcreteNumber>(_onGetTriviaForConcreteNumber);
+    on<GetTriviaForRandomNumber>(_onGetTriviaForRandomNumber);
   }
 
   void _onGetTriviaForConcreteNumber(
@@ -33,10 +37,37 @@ class NumberTriviaBloc extends Bloc<NumberTriviaEvent, NumberTriviaState> {
     final inputEither =
         inputConverter.stringToUnsignedInteger(event.numberString);
     inputEither.fold(
-      (l) => emit(const Error(invalidInputFailureMessage)),
-      (number) {
-        getConcreteNumberTrivia(Params(number: number));
+      (failure) => emit(const Error(invalidInputFailureMessage)),
+      (number) async {
+        emit(Loading());
+        final failureOrTrivia =
+            await getConcreteNumberTrivia(Params(number: number));
+        _eitherLoadedOrErrorState(failureOrTrivia, emit);
       },
     );
+  }
+
+  void _onGetTriviaForRandomNumber(
+      GetTriviaForRandomNumber event, Emitter<NumberTriviaState> emit) async {
+    emit(Loading());
+    final failureOrTrivia = await getRandomNumberTrivia(NoParams());
+    _eitherLoadedOrErrorState(failureOrTrivia, emit);
+  }
+
+  void _eitherLoadedOrErrorState(
+      Either<Failure, NumberTrivia> either, Emitter<NumberTriviaState> emit) {
+    emit(either.fold((failure) => Error(_mapFailureToMessage(failure)),
+        (trivia) => Loaded(trivia)));
+  }
+
+  String _mapFailureToMessage(Failure failure) {
+    switch (failure.runtimeType) {
+      case ServerFailure:
+        return serverFailureMessage;
+      case CacheFailure:
+        return cacheFailureMessage;
+      default:
+        return 'Unexpected Error';
+    }
   }
 }
